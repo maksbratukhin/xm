@@ -1,19 +1,18 @@
-import { Component, OnInit, OnDestroy, inject, signal, ViewChild } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, signal, ElementRef, ViewChild, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { CdkVirtualScrollViewport, ScrollingModule } from '@angular/cdk/scrolling';
 import { PhotoService, Photo, PhotosStore, FavoritesStore } from '@photo-library/shared/data-access';
 import { PhotoGridWithFavoritesComponent, LoadingSpinnerComponent, ImagePreviewModalComponent } from '@photo-library/shared/ui';
-import { Subject, takeUntil, debounceTime } from 'rxjs';
+import { Subject, takeUntil, fromEvent, debounceTime, throttleTime } from 'rxjs';
 
 @Component({
   selector: 'lib-photos-list',
-  imports: [CommonModule, PhotoGridWithFavoritesComponent, LoadingSpinnerComponent, ScrollingModule, ImagePreviewModalComponent],
+  imports: [CommonModule, PhotoGridWithFavoritesComponent, LoadingSpinnerComponent, ImagePreviewModalComponent],
   templateUrl: './photos-list.component.html',
   styleUrls: ['./photos-list.component.scss']
 })
-export class PhotosListComponent implements OnInit, OnDestroy {
-  @ViewChild(CdkVirtualScrollViewport) viewport!: CdkVirtualScrollViewport;
+export class PhotosListComponent implements OnInit, OnDestroy, AfterViewInit {
+  @ViewChild('scrollContainer') scrollContainer!: ElementRef;
 
   private readonly photoService = inject(PhotoService);
   private readonly photosStore = inject(PhotosStore);
@@ -26,13 +25,23 @@ export class PhotosListComponent implements OnInit, OnDestroy {
   readonly hasMore = this.photosStore.hasMore;
   
   readonly selectedPhoto = signal<(Photo & { isFavorite: boolean}) | null>(null);
-  readonly itemSize = 350;
 
   private isLoadingMore = false;
 
   ngOnInit(): void {
     this.photosStore.resetPhotos();
     this.loadInitialPhotos();
+  }
+
+  ngAfterViewInit(): void {
+    if (this.scrollContainer) {
+      fromEvent(this.scrollContainer.nativeElement, 'scroll')
+        .pipe(
+          throttleTime(200),
+          takeUntil(this.destroy$)
+        )
+        .subscribe(() => this.onScroll());
+    }
   }
 
   ngOnDestroy(): void {
@@ -57,11 +66,18 @@ export class PhotosListComponent implements OnInit, OnDestroy {
     }
   }
 
-  onScrollIndexChange(index: number): void {
-    const totalPhotos = this.photos().length;
-    const threshold = totalPhotos - 3;
+  private onScroll(): void {
+    if (!this.scrollContainer) return;
 
-    if (index >= threshold && !this.isLoadingMore && this.hasMore() && !this.isLoading()) {
+    const element = this.scrollContainer.nativeElement;
+    const scrollTop = element.scrollTop;
+    const scrollHeight = element.scrollHeight;
+    const clientHeight = element.clientHeight;
+
+    const threshold = 300;
+    const atBottom = scrollTop + clientHeight >= scrollHeight - threshold;
+
+    if (atBottom && !this.isLoadingMore && this.hasMore() && !this.isLoading()) {
       this.loadMorePhotos();
     }
   }
@@ -89,6 +105,7 @@ export class PhotosListComponent implements OnInit, OnDestroy {
     }
 
     this.isLoadingMore = true;
+    this.photosStore.setLoading(true);
     const currentPage = this.photosStore.currentPage();
 
     this.photoService.fetchPhotos(currentPage)
@@ -96,10 +113,12 @@ export class PhotosListComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (photos) => {
           this.photosStore.addPhotos(photos);
+          this.photosStore.setLoading(false);
           this.isLoadingMore = false;
         },
         error: (error) => {
           console.error('Error loading more photos:', error);
+          this.photosStore.setLoading(false);
           this.isLoadingMore = false;
         }
       });

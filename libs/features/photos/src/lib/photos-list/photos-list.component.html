@@ -1,28 +1,27 @@
-<div class="photos-list-container">
-  @if (photos().length > 0) {
-    <cdk-virtual-scroll-viewport
-      [itemSize]="itemSize"
-      class="virtual-scroll-viewport"
-      (scrolledIndexChange)="onScrollIndexChange($event)">
+<div class="photos-list-container" #scrollContainer>
+  <div class="photos-list-content">
+    @if (photos().length > 0) {
       <lib-photo-grid-with-favorites
         [photos]="photos()"
         (photoClick)="onPhotoClick($event)" />
-    </cdk-virtual-scroll-viewport>
-  }
+    }
+
+    @if (isLoading() && photos().length > 0) {
+      <div class="loading-more">
+        <lib-loading-spinner />
+      </div>
+    }
+  </div>
 
   @if (isLoading() && photos().length === 0) {
-    <lib-loading-spinner />
+    <div class="initial-loading">
+      <lib-loading-spinner />
+    </div>
   }
 
   @if (!isLoading() && photos().length === 0) {
     <div class="empty-state">
       <p>No photos available</p>
-    </div>
-  }
-
-  @if (isLoading() && photos().length > 0) {
-    <div class="loading-more">
-      <lib-loading-spinner />
     </div>
   }
 </div>

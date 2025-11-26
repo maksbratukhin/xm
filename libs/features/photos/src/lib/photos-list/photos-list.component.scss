@@ -1,30 +1,32 @@
 .photos-list-container {
-  min-height: calc(100vh - 80px);
-  position: relative;
-}
-
-.virtual-scroll-viewport {
   height: calc(100vh - 80px);
-  width: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
 }
 
+.photos-list-content {
+  min-height: 100%;
+}
+
+.initial-loading,
 .empty-state {
   display: flex;
   align-items: center;
   justify-content: center;
   min-height: 400px;
+  padding: 2rem;
+}
+
+.empty-state p {
   color: #666;
   font-size: 1.125rem;
+  text-align: center;
 }
 
 .loading-more {
-  position: fixed;
-  bottom: 2rem;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(255, 255, 255, 0.9);
-  padding: 1rem;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  display: flex;
+  justify-content: center;
+  padding: 2rem;
+  margin-top: 1rem;
 }
-

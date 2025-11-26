@@ -5,6 +5,8 @@
   overflow: hidden;
   background: #f5f5f5;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
+  aspect-ratio: 1;
+  width: 100%;
 
   &:hover {
     transform: translateY(-4px);
@@ -21,14 +23,13 @@
   height: 100%;
   object-fit: cover;
   display: block;
-  aspect-ratio: 1;
 }
 
 .favorite-button {
   position: absolute;
   top: 8px;
   right: 8px;
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(4px);
   border: none;
   width: 40px;
@@ -42,6 +43,7 @@
   opacity: 0;
   transition: all 0.3s ease;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  z-index: 10;
 
   &:hover {
     background: rgba(255, 255, 255, 1);
@@ -55,14 +57,40 @@
   }
 
   svg {
-    width: 24px;
-    height: 24px;
+    width: 22px;
+    height: 22px;
   }
 }
 
 @media (max-width: 768px) {
   .favorite-button {
     opacity: 1;
+    width: 36px;
+    height: 36px;
+    top: 6px;
+    right: 6px;
+
+    svg {
+      width: 20px;
+      height: 20px;
+    }
   }
 }
 
+@media (max-width: 480px) {
+  .photo-card {
+    border-radius: 6px;
+  }
+
+  .favorite-button {
+    width: 32px;
+    height: 32px;
+    top: 4px;
+    right: 4px;
+
+    svg {
+      width: 18px;
+      height: 18px;
+    }
+  }
+}
