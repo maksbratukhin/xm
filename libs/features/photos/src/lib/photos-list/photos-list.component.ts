@@ -37,8 +37,7 @@ export class PhotosListComponent implements OnInit, OnDestroy, AfterViewInit {
   private isLoadingMore = false;
 
   ngOnInit(): void {
-    this.photosStore.resetPhotos();
-    this.loadInitialPhotos();
+    this.photosStore.loadInitialPhotos();
     this.setupResizeListener();
   }
 
@@ -119,48 +118,11 @@ export class PhotosListComponent implements OnInit, OnDestroy, AfterViewInit {
     const atBottom = distanceFromBottom <= threshold;
 
     if (atBottom && !this.isLoadingMore && this.hasMore() && !this.isLoading()) {
-      this.loadMorePhotos();
+      this.isLoadingMore = true;
+      this.photosStore.loadPhotos(this.photosStore.currentPage());
+      setTimeout(() => {
+        this.isLoadingMore = false;
+      }, 500);
     }
-  }
-
-  private loadInitialPhotos(): void {
-    this.photosStore.setLoading(true);
-    
-    this.photoService.fetchPhotos(1)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (photos) => {
-          this.photosStore.addPhotos(photos);
-          this.photosStore.setLoading(false);
-        },
-        error: (error) => {
-          this.photosStore.setError(error.message);
-          this.photosStore.setLoading(false);
-        }
-      });
-  }
-
-  private loadMorePhotos(): void {
-    if (this.isLoadingMore || !this.hasMore()) {
-      return;
-    }
-
-    this.isLoadingMore = true;
-    this.photosStore.setLoading(true);
-    const currentPage = this.photosStore.currentPage();
-
-    this.photoService.fetchPhotos(currentPage)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (photos) => {
-          this.photosStore.addPhotos(photos);
-          this.photosStore.setLoading(false);
-          this.isLoadingMore = false;
-        },
-        error: (error) => {
-          this.photosStore.setLoading(false);
-          this.isLoadingMore = false;
-        }
-      });
   }
 }
