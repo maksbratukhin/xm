@@ -1,18 +1,4 @@
-<div class="photos-list-container" #scrollContainer>
-  <div class="photos-list-content">
-    @if (photos().length > 0) {
-      <lib-photo-grid-with-favorites
-        [photos]="photos()"
-        (photoClick)="onPhotoClick($event)" />
-    }
-
-    @if (isLoading() && photos().length > 0) {
-      <div class="loading-more">
-        <lib-loading-spinner />
-      </div>
-    }
-  </div>
-
+<div class="photos-viewport" #scrollContainer>
   @if (isLoading() && photos().length === 0) {
     <div class="initial-loading">
       <lib-loading-spinner />
@@ -23,6 +9,23 @@
     <div class="empty-state">
       <p>No photos available</p>
     </div>
+  }
+
+  @if (photos().length > 0) {
+    <div class="photo-grid">
+      @for (photo of photos(); track photo.id) {
+        <lib-photo-card-with-favorite
+          [photo]="enrichPhotoWithFavorite(photo)"
+          (photoClick)="onPhotoClick(photo)"
+          (toggleFavorite)="onToggleFavoriteForPhoto(photo)" />
+      }
+    </div>
+
+    @if (isLoading() && hasMore()) {
+      <div class="loading-more">
+        <lib-loading-spinner />
+      </div>
+    }
   }
 </div>
 

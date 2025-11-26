@@ -1,18 +1,18 @@
-import { Component, OnInit, OnDestroy, inject, signal, ElementRef, ViewChild, AfterViewInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterViewInit, inject, signal, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { PhotoService, Photo, PhotosStore, FavoritesStore } from '@photo-library/shared/data-access';
-import { PhotoGridWithFavoritesComponent, LoadingSpinnerComponent, ImagePreviewModalComponent } from '@photo-library/shared/ui';
-import { Subject, takeUntil, fromEvent, debounceTime, throttleTime } from 'rxjs';
+import { PhotoCardWithFavoriteComponent, LoadingSpinnerComponent, ImagePreviewModalComponent } from '@photo-library/shared/ui';
+import { Subject, takeUntil, fromEvent, throttleTime } from 'rxjs';
 
 @Component({
   selector: 'lib-photos-list',
-  imports: [CommonModule, PhotoGridWithFavoritesComponent, LoadingSpinnerComponent, ImagePreviewModalComponent],
+  imports: [CommonModule, PhotoCardWithFavoriteComponent, LoadingSpinnerComponent, ImagePreviewModalComponent],
   templateUrl: './photos-list.component.html',
   styleUrls: ['./photos-list.component.scss']
 })
 export class PhotosListComponent implements OnInit, OnDestroy, AfterViewInit {
-  @ViewChild('scrollContainer') scrollContainer!: ElementRef;
+  @ViewChild('scrollContainer') scrollContainer?: ElementRef;
 
   private readonly photoService = inject(PhotoService);
   private readonly photosStore = inject(PhotosStore);
@@ -49,9 +49,20 @@ export class PhotosListComponent implements OnInit, OnDestroy, AfterViewInit {
     this.destroy$.complete();
   }
 
+  enrichPhotoWithFavorite(photo: Photo): Photo & { isFavorite: boolean } {
+    return {
+      ...photo,
+      isFavorite: this.favoritesStore.isFavorite(photo.id)
+    };
+  }
+
   onPhotoClick(photo: Photo): void {
     const isFavorite = this.favoritesStore.isFavorite(photo.id);
     this.selectedPhoto.set({ ...photo, isFavorite });
+  }
+
+  onToggleFavoriteForPhoto(photo: Photo): void {
+    this.favoritesStore.toggleFavorite(photo);
   }
 
   onClosePreview(): void {
@@ -67,15 +78,18 @@ export class PhotosListComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private onScroll(): void {
-    if (!this.scrollContainer) return;
+    if (!this.scrollContainer) {
+      return;
+    }
 
     const element = this.scrollContainer.nativeElement;
     const scrollTop = element.scrollTop;
     const scrollHeight = element.scrollHeight;
     const clientHeight = element.clientHeight;
 
-    const threshold = 300;
-    const atBottom = scrollTop + clientHeight >= scrollHeight - threshold;
+    const threshold = 500;
+    const distanceFromBottom = scrollHeight - (scrollTop + clientHeight);
+    const atBottom = distanceFromBottom <= threshold;
 
     if (atBottom && !this.isLoadingMore && this.hasMore() && !this.isLoading()) {
       this.loadMorePhotos();
@@ -117,7 +131,6 @@ export class PhotosListComponent implements OnInit, OnDestroy, AfterViewInit {
           this.isLoadingMore = false;
         },
         error: (error) => {
-          console.error('Error loading more photos:', error);
           this.photosStore.setLoading(false);
           this.isLoadingMore = false;
         }

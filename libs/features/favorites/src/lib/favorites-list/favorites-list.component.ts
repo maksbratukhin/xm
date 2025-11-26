@@ -1,6 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
 import { FavoritesStore, Photo } from '@photo-library/shared/data-access';
 import { PhotoGridComponent, ImagePreviewModalComponent } from '@photo-library/shared/ui';
 
@@ -12,7 +11,6 @@ import { PhotoGridComponent, ImagePreviewModalComponent } from '@photo-library/s
 })
 export class FavoritesListComponent {
   private readonly favoritesStore = inject(FavoritesStore);
-  private readonly router = inject(Router);
 
   readonly favorites = this.favoritesStore.favoritesList;
   readonly hasFavorites = this.favoritesStore.hasFavorites;

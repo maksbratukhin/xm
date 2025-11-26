@@ -23,3 +23,4 @@ export class PhotoGridWithFavoritesComponent<T extends PhotoDisplay = PhotoDispl
   }
 }
 
+

@@ -1,0 +1,14 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "types": ["node"],
+    "moduleResolution": "node"
+  },
+  "include": [
+    "../libs/**/*.stories.ts",
+    "../libs/**/*.component.ts",
+    "*.ts"
+  ],
+  "exclude": ["../node_modules"]
+}
+

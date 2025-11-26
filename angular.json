@@ -95,6 +95,24 @@
               "src/styles.scss"
             ]
           }
+        },
+        "storybook": {
+          "builder": "@storybook/angular:start-storybook",
+          "options": {
+            "configDir": ".storybook",
+            "browserTarget": "photo-library:build",
+            "compodoc": false,
+            "port": 6006
+          }
+        },
+        "build-storybook": {
+          "builder": "@storybook/angular:build-storybook",
+          "options": {
+            "configDir": ".storybook",
+            "browserTarget": "photo-library:build",
+            "compodoc": false,
+            "outputDir": "dist/storybook"
+          }
         }
       }
     }

@@ -32,3 +32,4 @@ export class PhotoCardWithFavoriteComponent<T extends PhotoDisplay = PhotoDispla
   }
 }
 
+
