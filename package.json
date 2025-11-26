@@ -6,8 +6,8 @@
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "nx run-many -t test",
-    "test:watch": "nx run-many -t test --watch",
+    "test": "jest --passWithNoTests",
+    "test:watch": "jest --watch",
     "lint": "nx run-many -t lint",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build"
