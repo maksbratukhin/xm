@@ -23,15 +23,6 @@ npm run storybook
 # Opens at http://localhost:6006
 ```
 
-### Verify Virtualization is Working
-
-After starting the app:
-1. Open Chrome DevTools (F12) → Elements tab
-2. Search for `photo-card-with-favorite`
-3. You should see only ~15-20 components (not 100+!)
-4. Search for `photo-placeholder` to see virtualized items
-5. Scroll and watch components swap between real and placeholder
-
 ## 📱 How to Use
 
 ### Photos Page (/)
@@ -54,31 +45,16 @@ After starting the app:
 
 ## 🏗️ Tech Stack
 
-- **Angular 20.3.14** - Latest version with signals, control flow
-- **RxAngular RxVirtualView** - Grid virtualization with IntersectionObserver
+- **Angular 20.3.14** - Latest version with signals
 - **@ngrx/signals** - Modern state management
-- **@angular/material** - UI components
-- **HttpClient + RxJS** - HTTP communication and reactive programming
+- **@angular/cdk** - UI utilities
+- **HttpClient** - HTTP communication
+- **RxJS** - Reactive programming
 - **TypeScript 5.9** - Strict mode
 - **SCSS** - Responsive styling
-- **Jest** - Unit testing (28 tests)
+- **Jest** - Unit testing
 - **Nx 22.1.2** - Monorepo tooling
-- **Storybook 10** - Component library (6 stories)
-- **Husky** - Git hooks
-- **GitHub Actions** - CI/CD pipeline
-
-### Why RxAngular RxVirtualView?
-
-Unlike CDK Virtual Scroll, RxVirtualView:
-- ✅ Works with **multi-column CSS Grid** layouts
-- ✅ Supports **responsive grids** (1-4 columns)
-- ✅ Handles **variable item sizes**
-- ✅ Uses native **IntersectionObserver** API
-- ✅ Provides **content caching** for smooth scrolling
-- ✅ Enables **CSS content-visibility** optimization
-- ✅ Only renders ~20 components for 1000+ photos
-
-Reference: [RxAngular Virtual View Documentation](https://www.rx-angular.io/docs/template/virtual-view-directive)
+- **Storybook** - Component library
 
 ## 📂 Project Structure
 
