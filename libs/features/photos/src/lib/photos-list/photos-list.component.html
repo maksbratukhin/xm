@@ -1,21 +1,28 @@
-<div class="photos-list-container" (scroll)="onScroll($event)">
+<div class="photos-list-container">
   @if (photos().length > 0) {
     <cdk-virtual-scroll-viewport
       [itemSize]="itemSize"
-      class="virtual-scroll-viewport">
+      class="virtual-scroll-viewport"
+      (scrolledIndexChange)="onScrollIndexChange($event)">
       <lib-photo-grid-with-favorites
         [photos]="photos()"
         (photoClick)="onPhotoClick($event)" />
     </cdk-virtual-scroll-viewport>
   }
 
-  @if (isLoading()) {
+  @if (isLoading() && photos().length === 0) {
     <lib-loading-spinner />
   }
 
   @if (!isLoading() && photos().length === 0) {
     <div class="empty-state">
       <p>No photos available</p>
+    </div>
+  }
+
+  @if (isLoading() && photos().length > 0) {
+    <div class="loading-more">
+      <lib-loading-spinner />
     </div>
   }
 </div>

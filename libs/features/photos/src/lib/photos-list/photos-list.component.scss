@@ -1,29 +1,11 @@
 .photos-list-container {
   min-height: calc(100vh - 80px);
-  padding-bottom: 2rem;
-  overflow-y: auto;
+  position: relative;
 }
 
 .virtual-scroll-viewport {
   height: calc(100vh - 80px);
   width: 100%;
-}
-
-.photo-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 1.5rem;
-  padding: 1.5rem;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-@media (max-width: 768px) {
-  .photo-grid {
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 1rem;
-    padding: 1rem;
-  }
 }
 
 .empty-state {
@@ -33,5 +15,16 @@
   min-height: 400px;
   color: #666;
   font-size: 1.125rem;
+}
+
+.loading-more {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255, 255, 255, 0.9);
+  padding: 1rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 

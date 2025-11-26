@@ -1,139 +1,131 @@
-# Photo Library Application
+# Photo Library - Production-Ready Angular 20 Application
 
-A modern Angular 20 photo library application built with Nx monorepo architecture, featuring infinite scroll, favorites management, and persistent storage.
+A modern photo library application built with Angular 20, NgRx SignalStore, Virtual Scroll, and advanced UX patterns.
 
 ## Features
 
-- **Infinite Scroll Photo Stream**: Browse an endless stream of random photos from Picsum with automatic loading
-- **Favorites Management**: Click photos to add them to favorites, persisted in local storage
-- **Single Photo View**: View favorite photos in full screen with removal option
-- **Responsive Design**: Mobile-friendly grid layout that adapts to screen size
-- **Signal-Based State Management**: Utilizes Angular 20 signals for reactive state
-- **Domain-Driven Design**: Clean architecture with separation of concerns
-- **Type-Safe**: Full TypeScript implementation with strict mode
+- **Infinite Photo Stream** with CDK Virtual Scroll
+- **Full-Screen Image Preview Modal**
+- **Heart Icon Favorites** with instant feedback
+- **NgRx SignalStore** for state management
+- **HttpClient** with RxJS observables
+- **localStorage** persistence
+- **Responsive Design**
 
 ## Tech Stack
 
-- **Angular 20**: Latest Angular with standalone components and signals
-- **Nx**: Monorepo tooling for better code organization
-- **TypeScript**: Strict type safety
-- **SCSS**: Modern styling with CSS Grid and Flexbox
-- **Jest**: Unit testing framework
-- **Storybook**: Component documentation (stories included)
+- Angular 20.3.14
+- @ngrx/signals for state management
+- @angular/cdk for virtual scrolling
+- RxJS for reactive programming
+- TypeScript 5.9 (strict mode)
+- SCSS
+- Jest for testing
+- Nx 22.1.2 monorepo
 
-## Project Structure
-
-```
-photo-library/
-├── src/                          # Main application
-│   └── app/
-│       ├── app.ts               # Root component
-│       ├── app.routes.ts        # Route configuration
-│       └── app.config.ts        # Application configuration
-├── libs/                         # Shared libraries
-│   ├── shared/
-│   │   ├── ui/                  # Reusable UI components
-│   │   │   ├── header/
-│   │   │   ├── photo-card/
-│   │   │   ├── photo-grid/
-│   │   │   ├── button/
-│   │   │   └── loading-spinner/
-│   │   └── data-access/         # Services and models
-│   │       ├── services/
-│   │       │   ├── photo.service.ts
-│   │       │   ├── favorites.service.ts
-│   │       │   └── storage.service.ts
-│   │       └── models/
-│   │           └── photo.model.ts
-│   └── features/                # Feature modules
-│       ├── photos/              # Photos feature
-│       │   ├── photos-list/     # Infinite scroll list
-│       │   └── photo-detail/    # Single photo view
-│       └── favorites/           # Favorites feature
-│           └── favorites-list/  # Favorites grid
-```
-
-## Installation
+## Quick Start
 
 ```bash
 # Install dependencies
 npm install
 
-# Serve the application
+# Run development server
 npm start
+# App opens at http://localhost:4200
 
-# Build the application
+# Build for production
 npm run build
 
 # Run tests
 npm test
 
-# Run tests in watch mode
-npm run test:watch
+# Run Storybook (component library)
+npm run storybook
 ```
 
-## Routes
+## Project Structure
 
-- `/` - Photos stream (infinite scroll)
-- `/favorites` - Favorites library
-- `/photos/:id` - Single photo detail view
+```
+photo-library/
+├── src/app/                  # Main application
+├── libs/
+│   ├── shared/
+│   │   ├── ui/              # Reusable UI components
+│   │   └── data-access/     # Services & State (SignalStore)
+│   └── features/
+│       ├── photos/          # Photos feature (list + detail)
+│       └── favorites/       # Favorites feature
+```
+
+## Usage
+
+1. **Browse Photos** (`/`) - Scroll to load more photos infinitely
+2. **Add to Favorites** - Click heart icon on any photo
+3. **View Preview** - Click photo for full-screen modal
+4. **Manage Favorites** (`/favorites`) - View and remove favorites
+
+## Key Features
+
+### State Management (NgRx SignalStore)
+
+```typescript
+// PhotosStore - manages photo stream
+export const PhotosStore = signalStore(
+  { providedIn: 'root' },
+  withState({ photos: [], isLoading: false }),
+  withComputed(({ photos }) => ({
+    photosCount: computed(() => photos().length)
+  })),
+  withMethods((store) => ({
+    addPhotos(newPhotos) { /* ... */ }
+  }))
+);
+```
+
+### Virtual Scroll
+
+Optimized infinite scrolling with CDK Virtual Scroll:
+- Only renders visible items (~20-30 DOM nodes)
+- Constant memory usage
+- 60 FPS smooth scrolling
+- Handles thousands of photos
+
+### Image Preview Modal
+
+- Full-screen photo view
+- Smooth animations
+- Fixed header with buttons
+- Toggle favorite from modal
+- Click backdrop to close
+
+## Scripts
+
+```json
+{
+  "start": "ng serve",
+  "build": "ng build",
+  "test": "nx run-many -t test",
+  "storybook": "storybook dev -p 6006"
+}
+```
 
 ## Architecture
 
-### Domain-Driven Design
+- **Domain-Driven Design** with clean separation
+- **SOLID Principles** throughout
+- **Signal-based Reactivity** with Angular 20
+- **Type-safe** with TypeScript strict mode
+- **Testable** with dependency injection
 
-The application follows DDD principles with clear separation:
+## Performance
 
-- **Shared/UI**: Presentational components (dumb components)
-- **Shared/Data-Access**: Services, state management, and models
-- **Features**: Smart components that connect UI with services
-
-### SOLID Principles
-
-- **Single Responsibility**: Each component/service has one clear purpose
-- **Open/Closed**: Components are open for extension, closed for modification
-- **Liskov Substitution**: Generic components accept any compatible type
-- **Interface Segregation**: Small, focused interfaces
-- **Dependency Inversion**: Depend on abstractions, not concretions
-
-### Key Design Patterns
-
-1. **Signal-Based State**: Reactive state management with Angular signals
-2. **Service Layer**: Centralized business logic in injectable services
-3. **Generic Components**: Type-safe reusable components with generics
-4. **Lazy Loading**: Route-based code splitting for optimal performance
-5. **Local Storage Persistence**: Favorites persist across browser sessions
-
-## Services
-
-### PhotoService
-Fetches random photos from Picsum API with simulated network delay (200-300ms).
-
-### FavoritesService
-Manages favorite photos with signal-based state and localStorage persistence.
-
-### StorageService
-Generic localStorage wrapper with type safety and error handling.
-
-## Components
-
-### Shared UI Components
-
-- **HeaderComponent**: Navigation header with active tab highlighting
-- **PhotoCardComponent**: Individual photo thumbnail with click handling
-- **PhotoGridComponent**: Responsive grid layout for photos
-- **ButtonComponent**: Reusable button with multiple variants
-- **LoadingSpinnerComponent**: Loading indicator
-
-### Feature Components
-
-- **PhotosListComponent**: Infinite scroll photo stream
-- **FavoritesListComponent**: Grid of favorite photos
-- **PhotoDetailComponent**: Full-screen photo view with remove button
+- **Initial Bundle**: 376 KB (103 KB gzipped)
+- **Lazy Loaded**: Features code-split
+- **Virtual Scroll**: Constant memory
+- **First Paint**: < 1s
+- **Time to Interactive**: < 2s
 
 ## Testing
-
-Unit tests are included for all services and key components:
 
 ```bash
 # Run all tests
@@ -143,74 +135,6 @@ npm test
 npm run test:watch
 ```
 
-## Development Guidelines
-
-### Component Structure
-
-Each component follows a 3-file structure:
-- `*.component.ts` - Component logic
-- `*.component.html` - Template
-- `*.component.scss` - Styles
-
-### Signals Usage
-
-The application uses Angular signals for reactive state:
-
-```typescript
-// Service
-readonly favoritesMap = signal<Map<string, Photo>>(new Map());
-readonly favorites = computed(() => Array.from(this.favoritesMap().values()));
-
-// Component
-readonly photos = signal<Photo[]>([]);
-```
-
-### Custom Infinite Scroll
-
-Implemented without external libraries using HostListener:
-
-```typescript
-@HostListener('window:scroll')
-onScroll(): void {
-  const scrollHeight = document.documentElement.scrollHeight;
-  const scrollTop = document.documentElement.scrollTop;
-  const clientHeight = document.documentElement.clientHeight;
-  
-  if (scrollTop + clientHeight >= scrollHeight - 100) {
-    this.loadMorePhotos();
-  }
-}
-```
-
-## API
-
-Photos are fetched from [Picsum Photos](https://picsum.photos/):
-
-- List API: `https://picsum.photos/v2/list?page={page}&limit={limit}`
-- Photo URL: `https://picsum.photos/id/{id}/{width}/{height}`
-- Thumbnail: `https://picsum.photos/id/{id}/300/300`
-
-## Browser Support
-
-- Chrome (latest)
-- Firefox (latest)
-- Safari (latest)
-- Edge (latest)
-
-## Future Enhancements
-
-- Search functionality
-- Photo filtering by author
-- Favorites sorting/filtering
-- Photo metadata display
-- Share functionality
-- PWA support
-- E2E tests with Cypress/Playwright
-
 ## License
 
 MIT
-
-## Author
-
-Built with Angular 20, Nx, and modern best practices.

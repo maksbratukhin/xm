@@ -1,10 +1,10 @@
-import { Component, OnInit, OnDestroy, inject, signal, effect } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, signal, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { ScrollingModule } from '@angular/cdk/scrolling';
+import { CdkVirtualScrollViewport, ScrollingModule } from '@angular/cdk/scrolling';
 import { PhotoService, Photo, PhotosStore, FavoritesStore } from '@photo-library/shared/data-access';
 import { PhotoGridWithFavoritesComponent, LoadingSpinnerComponent, ImagePreviewModalComponent } from '@photo-library/shared/ui';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject, takeUntil, debounceTime } from 'rxjs';
 
 @Component({
   selector: 'lib-photos-list',
@@ -13,6 +13,8 @@ import { Subject, takeUntil } from 'rxjs';
   styleUrls: ['./photos-list.component.scss']
 })
 export class PhotosListComponent implements OnInit, OnDestroy {
+  @ViewChild(CdkVirtualScrollViewport) viewport!: CdkVirtualScrollViewport;
+
   private readonly photoService = inject(PhotoService);
   private readonly photosStore = inject(PhotosStore);
   private readonly favoritesStore = inject(FavoritesStore);
@@ -24,7 +26,7 @@ export class PhotosListComponent implements OnInit, OnDestroy {
   readonly hasMore = this.photosStore.hasMore;
   
   readonly selectedPhoto = signal<(Photo & { isFavorite: boolean}) | null>(null);
-  readonly itemSize = 300;
+  readonly itemSize = 350;
 
   private isLoadingMore = false;
 
@@ -55,12 +57,11 @@ export class PhotosListComponent implements OnInit, OnDestroy {
     }
   }
 
-  onScroll(event: any): void {
-    const scrollTop = event.target.scrollTop;
-    const scrollHeight = event.target.scrollHeight;
-    const clientHeight = event.target.clientHeight;
+  onScrollIndexChange(index: number): void {
+    const totalPhotos = this.photos().length;
+    const threshold = totalPhotos - 3;
 
-    if (scrollTop + clientHeight >= scrollHeight - 500 && !this.isLoadingMore && this.hasMore() && !this.isLoading()) {
+    if (index >= threshold && !this.isLoadingMore && this.hasMore() && !this.isLoading()) {
       this.loadMorePhotos();
     }
   }
