@@ -1,24 +1,37 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { FavoritesService, Photo } from '@photo-library/shared/data-access';
-import { PhotoGridComponent } from '@photo-library/shared/ui';
+import { FavoritesStore, Photo } from '@photo-library/shared/data-access';
+import { PhotoGridComponent, ImagePreviewModalComponent } from '@photo-library/shared/ui';
 
 @Component({
   selector: 'lib-favorites-list',
-  imports: [CommonModule, PhotoGridComponent],
+  imports: [CommonModule, PhotoGridComponent, ImagePreviewModalComponent],
   templateUrl: './favorites-list.component.html',
   styleUrls: ['./favorites-list.component.scss']
 })
 export class FavoritesListComponent {
-  private readonly favoritesService = inject(FavoritesService);
+  private readonly favoritesStore = inject(FavoritesStore);
   private readonly router = inject(Router);
 
-  readonly favorites = computed(() => this.favoritesService.favorites());
-  readonly hasFavorites = computed(() => this.favorites().length > 0);
+  readonly favorites = this.favoritesStore.favoritesList;
+  readonly hasFavorites = this.favoritesStore.hasFavorites;
+  
+  readonly selectedPhoto = signal<(Photo & { isFavorite: boolean }) | null>(null);
 
   onPhotoClick(photo: Photo): void {
-    this.router.navigate(['/photos', photo.id]);
+    this.selectedPhoto.set({ ...photo, isFavorite: true });
+  }
+
+  onClosePreview(): void {
+    this.selectedPhoto.set(null);
+  }
+
+  onToggleFavorite(): void {
+    const photo = this.selectedPhoto();
+    if (photo) {
+      this.favoritesStore.removeFromFavorites(photo.id);
+      this.selectedPhoto.set(null);
+    }
   }
 }
-

@@ -1,4 +1,6 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable, delay, map, catchError, of } from 'rxjs';
 import { Photo, PhotoApiResponse } from '../models/photo.model';
 
 const BASE_URL = 'https://picsum.photos';
@@ -9,56 +11,36 @@ const MAX_DELAY = 300;
   providedIn: 'root'
 })
 export class PhotoService {
-  private readonly loadingState = signal<boolean>(false);
-  private currentPage = 1;
+  private readonly http = inject(HttpClient);
   private readonly pageSize = 12;
 
-  readonly isLoading = this.loadingState.asReadonly();
-
-  async fetchPhotos(): Promise<Photo[]> {
-    this.loadingState.set(true);
-
-    try {
-      const delay = Math.random() * (MAX_DELAY - MIN_DELAY) + MIN_DELAY;
-      await this.simulateDelay(delay);
-
-      const response = await fetch(
-        `${BASE_URL}/v2/list?page=${this.currentPage}&limit=${this.pageSize}`
+  fetchPhotos(page: number): Observable<Photo[]> {
+    const randomDelay = Math.random() * (MAX_DELAY - MIN_DELAY) + MIN_DELAY;
+    
+    return this.http
+      .get<PhotoApiResponse[]>(`${BASE_URL}/v2/list`, {
+        params: {
+          page: page.toString(),
+          limit: this.pageSize.toString()
+        }
+      })
+      .pipe(
+        delay(randomDelay),
+        map(responses => this.mapApiResponseToPhotos(responses)),
+        catchError(error => {
+          console.error('Error fetching photos:', error);
+          return of([]);
+        })
       );
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch photos');
-      }
-
-      const data: PhotoApiResponse[] = await response.json();
-      this.currentPage++;
-
-      return this.mapApiResponseToPhotos(data);
-    } catch (error) {
-      console.error('Error fetching photos:', error);
-      return [];
-    } finally {
-      this.loadingState.set(false);
-    }
   }
 
-  async getPhotoById(id: string): Promise<Photo | null> {
-    try {
-      const response = await fetch(`${BASE_URL}/id/${id}/info`);
-
-      if (!response.ok) {
-        return null;
-      }
-
-      const data: PhotoApiResponse = await response.json();
-      return this.mapApiResponseToPhoto(data);
-    } catch {
-      return null;
-    }
-  }
-
-  resetPagination(): void {
-    this.currentPage = 1;
+  getPhotoById(id: string): Observable<Photo | null> {
+    return this.http
+      .get<PhotoApiResponse>(`${BASE_URL}/id/${id}/info`)
+      .pipe(
+        map(response => this.mapApiResponseToPhoto(response)),
+        catchError(() => of(null))
+      );
   }
 
   private mapApiResponseToPhotos(responses: PhotoApiResponse[]): Photo[] {
@@ -73,10 +55,6 @@ export class PhotoService {
       width: response.width,
       height: response.height
     };
-  }
-
-  private simulateDelay(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
   }
 }
 

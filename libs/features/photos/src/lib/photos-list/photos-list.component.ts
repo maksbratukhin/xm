@@ -1,68 +1,106 @@
-import { Component, OnInit, OnDestroy, signal, inject, HostListener } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, signal, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { PhotoService, FavoritesService, Photo } from '@photo-library/shared/data-access';
-import { PhotoGridComponent, LoadingSpinnerComponent } from '@photo-library/shared/ui';
+import { ScrollingModule } from '@angular/cdk/scrolling';
+import { PhotoService, Photo, PhotosStore, FavoritesStore } from '@photo-library/shared/data-access';
+import { PhotoGridWithFavoritesComponent, LoadingSpinnerComponent, ImagePreviewModalComponent } from '@photo-library/shared/ui';
+import { Subject, takeUntil } from 'rxjs';
 
 @Component({
   selector: 'lib-photos-list',
-  imports: [CommonModule, PhotoGridComponent, LoadingSpinnerComponent],
+  imports: [CommonModule, PhotoGridWithFavoritesComponent, LoadingSpinnerComponent, ScrollingModule, ImagePreviewModalComponent],
   templateUrl: './photos-list.component.html',
   styleUrls: ['./photos-list.component.scss']
 })
 export class PhotosListComponent implements OnInit, OnDestroy {
   private readonly photoService = inject(PhotoService);
-  private readonly favoritesService = inject(FavoritesService);
+  private readonly photosStore = inject(PhotosStore);
+  private readonly favoritesStore = inject(FavoritesStore);
   private readonly router = inject(Router);
+  private readonly destroy$ = new Subject<void>();
 
-  readonly photos = signal<Photo[]>([]);
-  readonly isLoading = this.photoService.isLoading;
+  readonly photos = this.photosStore.photos;
+  readonly isLoading = this.photosStore.isLoading;
+  readonly hasMore = this.photosStore.hasMore;
+  
+  readonly selectedPhoto = signal<(Photo & { isFavorite: boolean}) | null>(null);
+  readonly itemSize = 300;
 
   private isLoadingMore = false;
-  private destroyed = false;
 
   ngOnInit(): void {
-    this.photoService.resetPagination();
+    this.photosStore.resetPhotos();
     this.loadInitialPhotos();
   }
 
   ngOnDestroy(): void {
-    this.destroyed = true;
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
-  @HostListener('window:scroll')
-  onScroll(): void {
-    if (this.destroyed || this.isLoadingMore || this.isLoading()) {
-      return;
+  onPhotoClick(photo: Photo): void {
+    const isFavorite = this.favoritesStore.isFavorite(photo.id);
+    this.selectedPhoto.set({ ...photo, isFavorite });
+  }
+
+  onClosePreview(): void {
+    this.selectedPhoto.set(null);
+  }
+
+  onToggleFavorite(): void {
+    const photo = this.selectedPhoto();
+    if (photo) {
+      this.favoritesStore.toggleFavorite(photo);
+      this.selectedPhoto.update(p => p ? { ...p, isFavorite: !p.isFavorite } : null);
     }
+  }
 
-    const scrollHeight = document.documentElement.scrollHeight;
-    const scrollTop = document.documentElement.scrollTop;
-    const clientHeight = document.documentElement.clientHeight;
+  onScroll(event: any): void {
+    const scrollTop = event.target.scrollTop;
+    const scrollHeight = event.target.scrollHeight;
+    const clientHeight = event.target.clientHeight;
 
-    if (scrollTop + clientHeight >= scrollHeight - 100) {
+    if (scrollTop + clientHeight >= scrollHeight - 500 && !this.isLoadingMore && this.hasMore() && !this.isLoading()) {
       this.loadMorePhotos();
     }
   }
 
-  onPhotoClick(photo: Photo): void {
-    this.favoritesService.addToFavorites(photo);
+  private loadInitialPhotos(): void {
+    this.photosStore.setLoading(true);
+    
+    this.photoService.fetchPhotos(1)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (photos) => {
+          this.photosStore.addPhotos(photos);
+          this.photosStore.setLoading(false);
+        },
+        error: (error) => {
+          this.photosStore.setError(error.message);
+          this.photosStore.setLoading(false);
+        }
+      });
   }
 
-  private async loadInitialPhotos(): Promise<void> {
-    const newPhotos = await this.photoService.fetchPhotos();
-    this.photos.set(newPhotos);
-  }
-
-  private async loadMorePhotos(): Promise<void> {
-    if (this.isLoadingMore) {
+  private loadMorePhotos(): void {
+    if (this.isLoadingMore || !this.hasMore()) {
       return;
     }
 
     this.isLoadingMore = true;
-    const newPhotos = await this.photoService.fetchPhotos();
-    this.photos.update(current => [...current, ...newPhotos]);
-    this.isLoadingMore = false;
+    const currentPage = this.photosStore.currentPage();
+
+    this.photoService.fetchPhotos(currentPage)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (photos) => {
+          this.photosStore.addPhotos(photos);
+          this.isLoadingMore = false;
+        },
+        error: (error) => {
+          console.error('Error loading more photos:', error);
+          this.isLoadingMore = false;
+        }
+      });
   }
 }
-

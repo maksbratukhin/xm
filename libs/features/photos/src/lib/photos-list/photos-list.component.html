@@ -1,8 +1,12 @@
-<div class="photos-list-container">
+<div class="photos-list-container" (scroll)="onScroll($event)">
   @if (photos().length > 0) {
-    <lib-photo-grid
-      [photos]="photos()"
-      (photoClick)="onPhotoClick($event)" />
+    <cdk-virtual-scroll-viewport
+      [itemSize]="itemSize"
+      class="virtual-scroll-viewport">
+      <lib-photo-grid-with-favorites
+        [photos]="photos()"
+        (photoClick)="onPhotoClick($event)" />
+    </cdk-virtual-scroll-viewport>
   }
 
   @if (isLoading()) {
@@ -16,3 +20,9 @@
   }
 </div>
 
+@if (selectedPhoto()) {
+  <lib-image-preview-modal
+    [photo]="selectedPhoto()!"
+    (close)="onClosePreview()"
+    (toggleFavorite)="onToggleFavorite()" />
+}
