@@ -16,8 +16,8 @@
     "prepare": "husky"
   },
   "lint-staged": {
-    "*.{ts,html}": [
-      "npm run test:ci"
+    "*.{ts,html,scss}": [
+      "npm test -- --bail --findRelatedTests --passWithNoTests"
     ]
   },
   "prettier": {
@@ -45,6 +45,7 @@
     "@angular/router": "^20.3.0",
     "@ngrx/signals": "^20.1.0",
     "@nx/jest": "^22.1.2",
+    "@rx-angular/template": "^20.1.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.15.0"

@@ -1,4 +1,4 @@
-<div class="photos-viewport" #scrollContainer>
+<div class="photos-viewport" #scrollContainer rxVirtualViewObserver>
   @if (isLoading() && photos().length === 0) {
     <div class="initial-loading">
       <lib-loading-spinner />
@@ -14,10 +14,18 @@
   @if (photos().length > 0) {
     <div class="photo-grid">
       @for (photo of photos(); track photo.id) {
-        <lib-photo-card-with-favorite
-          [photo]="enrichPhotoWithFavorite(photo)"
-          (photoClick)="onPhotoClick(photo)"
-          (toggleFavorite)="onToggleFavoriteForPhoto(photo)" />
+        <div class="photo-item" rxVirtualView>
+          <lib-photo-card-with-favorite
+            *rxVirtualViewContent
+            [photo]="enrichPhotoWithFavorite(photo)"
+            (photoClick)="onPhotoClick(photo)"
+            (toggleFavorite)="onToggleFavoriteForPhoto(photo)" />
+          <div 
+            *rxVirtualViewPlaceholder 
+            class="photo-placeholder"
+            [style.min-height.px]="290">
+          </div>
+        </div>
       }
     </div>
 
