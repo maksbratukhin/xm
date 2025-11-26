@@ -1,6 +1,5 @@
 import { Component, OnInit, OnDestroy, AfterViewInit, inject, signal, ViewChild, ElementRef, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
 import { RxVirtualView, RxVirtualViewContent, RxVirtualViewObserver, RxVirtualViewPlaceholder } from '@rx-angular/template/virtual-view';
 import { PhotoService, Photo, PhotosStore, FavoritesStore } from '@photo-library/shared/data-access';
 import { PhotoCardWithFavoriteComponent, LoadingSpinnerComponent, ImagePreviewModalComponent } from '@photo-library/shared/ui';
@@ -28,7 +27,6 @@ export class PhotosListComponent implements OnInit, OnDestroy, AfterViewInit {
   private readonly photoService = inject(PhotoService);
   private readonly photosStore = inject(PhotosStore);
   private readonly favoritesStore = inject(FavoritesStore);
-  private readonly router = inject(Router);
   private readonly destroy$ = new Subject<void>();
 
   readonly photos = this.photosStore.photos;

@@ -1,7 +1,5 @@
 import { computed } from '@angular/core';
 import { patchState, signalStore, withComputed, withMethods, withState } from '@ngrx/signals';
-import { rxMethod } from '@ngrx/signals/rxjs-interop';
-import { pipe, switchMap, tap, catchError, of, debounceTime } from 'rxjs';
 import { Photo } from '../models/photo.model';
 
 interface PhotosState {
@@ -46,5 +44,3 @@ export const PhotosStore = signalStore(
     }
   }))
 );
-
-

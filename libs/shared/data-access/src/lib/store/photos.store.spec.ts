@@ -1,49 +1,66 @@
 import { TestBed } from '@angular/core/testing';
 import { PhotosStore } from './photos.store';
-import { Photo } from '../models/photo.model';
+import { PhotoService } from '../services/photo.service';
+import { of } from 'rxjs';
 
 describe('PhotosStore', () => {
-  let store: ReturnType<typeof PhotosStore>;
-
-  const mockPhotos: Photo[] = [
-    {
-      id: '1',
-      url: 'https://test.com/1.jpg',
-      thumbnailUrl: 'https://test.com/thumb1.jpg',
-      width: 800,
-      height: 600
-    }
-  ];
+  let store: InstanceType<typeof PhotosStore>;
+  let mockPhotoService: jest.Mocked<PhotoService>;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({});
+    mockPhotoService = {
+      fetchPhotos: jest.fn().mockReturnValue(of([]))
+    } as any;
+
+    TestBed.configureTestingModule({
+      providers: [
+        PhotosStore,
+        { provide: PhotoService, useValue: mockPhotoService }
+      ]
+    });
+
     store = TestBed.inject(PhotosStore);
   });
 
-  it('should be created', () => {
+  it('should create', () => {
     expect(store).toBeTruthy();
   });
 
-  it('should initialize with empty state', () => {
+  it('should have initial state', () => {
     expect(store.photos()).toEqual([]);
     expect(store.isLoading()).toBe(false);
     expect(store.hasMore()).toBe(true);
   });
 
   it('should add photos', () => {
+    const mockPhotos = [
+      { id: '1', url: 'test.jpg', thumbnailUrl: 'thumb.jpg', width: 800, height: 600 }
+    ];
+    
+    store.addPhotos(mockPhotos);
+    
+    expect(store.photos().length).toBe(1);
+    expect(store.currentPage()).toBe(2);
+  });
+
+  it('should reset photos', () => {
+    const mockPhotos = [
+      { id: '1', url: 'test.jpg', thumbnailUrl: 'thumb.jpg', width: 800, height: 600 }
+    ];
+    
     store.addPhotos(mockPhotos);
     expect(store.photos().length).toBe(1);
-    expect(store.photosCount()).toBe(1);
+    
+    store.resetPhotos();
+    expect(store.photos()).toEqual([]);
+    expect(store.currentPage()).toBe(1);
   });
 
   it('should set loading state', () => {
     store.setLoading(true);
     expect(store.isLoading()).toBe(true);
-  });
-
-  it('should reset photos', () => {
-    store.addPhotos(mockPhotos);
-    store.resetPhotos();
-    expect(store.photos()).toEqual([]);
+    
+    store.setLoading(false);
+    expect(store.isLoading()).toBe(false);
   });
 });
