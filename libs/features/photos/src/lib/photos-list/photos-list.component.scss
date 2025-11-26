@@ -1,0 +1,14 @@
+.photos-list-container {
+  min-height: calc(100vh - 80px);
+  padding-bottom: 2rem;
+}
+
+.empty-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  color: #666;
+  font-size: 1.125rem;
+}
+

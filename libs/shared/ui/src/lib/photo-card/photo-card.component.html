@@ -1,0 +1,8 @@
+<div class="photo-card" (click)="onPhotoClick()">
+  <img
+    [src]="photo().thumbnailUrl"
+    [alt]="'Photo ' + photo().id"
+    class="photo-image"
+    loading="lazy" />
+</div>
+

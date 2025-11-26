@@ -1,0 +1,14 @@
+<header class="header">
+  <nav class="nav">
+    @for (tab of tabs(); track tab.path) {
+      <button
+        class="nav-button"
+        [class.active]="activeTab() === tab.path"
+        [routerLink]="tab.path"
+        (click)="onTabClick(tab.path)">
+        {{ tab.label }}
+      </button>
+    }
+  </nav>
+</header>
+

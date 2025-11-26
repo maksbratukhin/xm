@@ -1,0 +1,13 @@
+<div class="favorites-list-container">
+  @if (hasFavorites()) {
+    <lib-photo-grid
+      [photos]="favorites()"
+      (photoClick)="onPhotoClick($event)" />
+  } @else {
+    <div class="empty-state">
+      <p>No favorite photos yet</p>
+      <p class="subtitle">Click on photos in the Photos tab to add them to your favorites</p>
+    </div>
+  }
+</div>
+

@@ -1,0 +1,18 @@
+<div class="photo-detail-container">
+  @if (photo()) {
+    <div class="photo-detail">
+      <img
+        [src]="photo()!.url"
+        [alt]="'Photo ' + photo()!.id"
+        class="photo-image" />
+
+      <div class="photo-actions">
+        <lib-button
+          label="Remove from favorites"
+          variant="danger"
+          (buttonClick)="removeFromFavorites()" />
+      </div>
+    </div>
+  }
+</div>
+
