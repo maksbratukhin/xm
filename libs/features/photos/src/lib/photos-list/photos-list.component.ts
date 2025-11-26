@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy, AfterViewInit, inject, signal, ViewChild, ElementRef, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RxVirtualView, RxVirtualViewContent, RxVirtualViewObserver, RxVirtualViewPlaceholder } from '@rx-angular/template/virtual-view';
-import { PhotoService, Photo, PhotosStore, FavoritesStore } from '@photo-library/shared/data-access';
+import { Photo, PhotosStore, FavoritesStore } from '@photo-library/shared/data-access';
 import { PhotoCardWithFavoriteComponent, LoadingSpinnerComponent, ImagePreviewModalComponent } from '@photo-library/shared/ui';
 import { Subject, takeUntil, fromEvent, throttleTime, debounceTime } from 'rxjs';
 
@@ -24,7 +24,6 @@ import { Subject, takeUntil, fromEvent, throttleTime, debounceTime } from 'rxjs'
 export class PhotosListComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild('scrollContainer') scrollContainer?: ElementRef;
 
-  private readonly photoService = inject(PhotoService);
   private readonly photosStore = inject(PhotosStore);
   private readonly favoritesStore = inject(FavoritesStore);
   private readonly destroy$ = new Subject<void>();
