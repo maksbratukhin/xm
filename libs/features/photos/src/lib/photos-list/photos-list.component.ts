@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, AfterViewInit, inject, signal, ViewChild, ElementRef, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterViewInit, inject, signal, ViewChild, ElementRef, ChangeDetectionStrategy, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RxVirtualView, RxVirtualViewContent, RxVirtualViewObserver, RxVirtualViewPlaceholder } from '@rx-angular/template/virtual-view';
 import { Photo, PhotosStore, FavoritesStore } from '@photo-library/shared/data-access';
@@ -26,14 +26,13 @@ export class PhotosListComponent implements OnInit, OnDestroy, AfterViewInit {
 
   private readonly photosStore = inject(PhotosStore);
   private readonly favoritesStore = inject(FavoritesStore);
+  private readonly ngZone = inject(NgZone);
   private readonly destroy$ = new Subject<void>();
 
   readonly photos = this.photosStore.photos;
   readonly isLoading = this.photosStore.isLoading;
   readonly hasMore = this.photosStore.hasMore;
   readonly selectedPhoto = signal<(Photo & { isFavorite: boolean}) | null>(null);
-
-  private isLoadingMore = false;
 
   ngOnInit(): void {
     this.photosStore.loadInitialPhotos();
@@ -42,31 +41,35 @@ export class PhotosListComponent implements OnInit, OnDestroy, AfterViewInit {
 
   ngAfterViewInit(): void {
     if (this.scrollContainer) {
-      fromEvent(this.scrollContainer.nativeElement, 'scroll')
-        .pipe(
-          throttleTime(200),
-          takeUntil(this.destroy$)
-        )
-        .subscribe(() => this.onScroll());
+      this.ngZone.runOutsideAngular(() => {
+        fromEvent(this.scrollContainer!.nativeElement, 'scroll')
+          .pipe(
+            throttleTime(200),
+            takeUntil(this.destroy$)
+          )
+          .subscribe(() => this.onScroll());
+      });
     }
   }
 
   private setupResizeListener(): void {
-    fromEvent(window, 'resize')
-      .pipe(
-        debounceTime(200),
-        takeUntil(this.destroy$)
-      )
-      .subscribe(() => {
-        if (this.scrollContainer) {
-          const element = this.scrollContainer.nativeElement;
-          const currentScroll = element.scrollTop;
-          element.scrollTop = currentScroll + 1;
-          requestAnimationFrame(() => {
-            element.scrollTop = currentScroll;
-          });
-        }
-      });
+    this.ngZone.runOutsideAngular(() => {
+      fromEvent(window, 'resize')
+        .pipe(
+          debounceTime(200),
+          takeUntil(this.destroy$)
+        )
+        .subscribe(() => {
+          if (this.scrollContainer) {
+            const element = this.scrollContainer.nativeElement;
+            const currentScroll = element.scrollTop;
+            element.scrollTop = currentScroll + 1;
+            requestAnimationFrame(() => {
+              element.scrollTop = currentScroll;
+            });
+          }
+        });
+    });
   }
 
   ngOnDestroy(): void {
@@ -116,12 +119,8 @@ export class PhotosListComponent implements OnInit, OnDestroy, AfterViewInit {
     const distanceFromBottom = scrollHeight - (scrollTop + clientHeight);
     const atBottom = distanceFromBottom <= threshold;
 
-    if (atBottom && !this.isLoadingMore && this.hasMore() && !this.isLoading()) {
-      this.isLoadingMore = true;
+    if (atBottom && this.hasMore() && !this.isLoading()) {
       this.photosStore.loadPhotos(this.photosStore.currentPage());
-      setTimeout(() => {
-        this.isLoadingMore = false;
-      }, 500);
     }
   }
 }
